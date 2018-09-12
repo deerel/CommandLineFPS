@@ -81,15 +81,16 @@ using namespace std;
 
 #include "Map.h"
 #include "Player.h"
+#include "Screen.h"
 
-int nScreenWidth = 120;			// Console Screen Size X (columns)
-int nScreenHeight = 40;			// Console Screen Size Y (rows)
+int _nScreenWidth = 120;			// Console Screen Size X (columns)
+int _nScreenHeight = 40;			// Console Screen Size Y (rows)
 int nMapWidth = 16;				// World Dimensions
 int nMapHeight = 16;
 
 float fPlayerX = 14.7f;			// Player Start Position
 float fPlayerY = 5.09f;
-float fPlayerA = 1.7f;			// Player Start Rotation
+float fPlayerA = 0.0f;			// Player Start Rotation
 float fFOV = 3.14159f / 4.0f;	// Field of View
 float fDepth = 16.0f;			// Maximum rendering distance
 float fSpeed = 5.0f;			// Walking Speed
@@ -97,10 +98,7 @@ float fSpeed = 5.0f;			// Walking Speed
 int main()
 {
 	// Create Screen Buffer
-	wchar_t *screen = new wchar_t[nScreenWidth*nScreenHeight];
-	HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	SetConsoleActiveScreenBuffer(hConsole);
-	DWORD dwBytesWritten = 0;
+	clfps::Screen screen(_nScreenWidth, _nScreenHeight);
 
 	auto map = clfps::Map(nMapWidth, nMapHeight);
 	auto player = clfps::Player(fPlayerX, fPlayerY, fPlayerA, fFOV, fSpeed);
@@ -141,12 +139,12 @@ int main()
 				player.backward(fElapsedTime);
 		}
 
-		for (int x = 0; x < nScreenWidth; x++)
+		//for (int x = 0; x < nScreenWidth; x++)
+		for (int x = 0; x < screen.width(); x++)
 		{
 			// For each column, calculate the projected ray angle into world space
-			//float fRayAngle = (fPlayerA - fFOV / 2.0f) + ((float)x / (float)nScreenWidth) * fFOV;
 			const float fov = player.fov();
-			const float fRayAngle = (player.rotation() - fov / 2.0f) + ((float)x / (float)nScreenWidth) * fov;
+			const float fRayAngle = (player.rotation() - fov / 2.0f) + ((float)x / (float)screen.width()) * fov;
 
 			// Find distance to wall
 			const float fStepSize = 0.1f;		  // Increment size for ray casting, decrease to increase										
@@ -212,8 +210,8 @@ int main()
 			}
 
 			// Calculate distance to ceiling and floor
-			int nCeiling = (float)(nScreenHeight / 2.0) - nScreenHeight / ((float)fDistanceToWall);
-			int nFloor = nScreenHeight - nCeiling;
+			int nCeiling = (float)(screen.height() / 2.0) - screen.height() / ((float)fDistanceToWall);
+			int nFloor = screen.height() - nCeiling;
 
 			// Shader walls based on distance
 			short nShade = ' ';
@@ -225,42 +223,40 @@ int main()
 
 			if (bBoundary)		nShade = ' '; // Black it out
 
-			for (int y = 0; y < nScreenHeight; y++)
+			for (int y = 0; y < screen.height(); y++)
 			{
 				// Each Row
 				if (y <= nCeiling)
-					screen[y*nScreenWidth + x] = ' ';
+					screen.set(y*screen.width() + x, ' ');
 				else if (y > nCeiling && y <= nFloor)
-					screen[y*nScreenWidth + x] = nShade;
+					screen.set(y*screen.width() + x, nShade);
 				else // Floor
 				{
 					// Shade floor based on distance
-					float b = 1.0f - (((float)y - nScreenHeight / 2.0f) / ((float)nScreenHeight / 2.0f));
+					float b = 1.0f - (((float)y - screen.height() / 2.0f) / ((float)screen.height() / 2.0f));
 					if (b < 0.25)		nShade = '#';
 					else if (b < 0.5)	nShade = 'x';
 					else if (b < 0.75)	nShade = '.';
 					else if (b < 0.9)	nShade = '-';
 					else				nShade = ' ';
-					screen[y*nScreenWidth + x] = nShade;
+					screen.set(y*screen.width() + x, nShade);
 				}
 			}
 		}
 
 		// Display Stats
-		swprintf_s(screen, 40, L"X=%3.2f, Y=%3.2f, A=%3.2f FPS=%3.2f ", player.x(), player.y(), player.rotation(), 1.0f / fElapsedTime);
+		//swprintf_s(screen, 40, L"X=%3.2f, Y=%3.2f, A=%3.2f FPS=%3.2f ", player.x(), player.y(), player.rotation(), 1.0f / fElapsedTime);
 
 		// Display Map
 		for (int nx = 0; nx < nMapWidth; nx++)
 			for (int ny = 0; ny < nMapWidth; ny++)
 			{
-				screen[(ny + 1)*nScreenWidth + nx] = map.get(ny * nMapWidth + nx);
+				screen.set((ny + 1)*screen.width() + nx, map.get(ny * nMapWidth + nx));
 			}
-		//screen[((int)player.x() + 1) * nScreenWidth + (int)player.y()] = 'P';
-		screen[((int)player.x() + 1) * nScreenWidth + (int)player.y()] = player.representation();
+		screen.set(((int)player.x() + 1) * screen.width() + (int)player.y(), player.representation());
 
-		// Display Frame
-		screen[nScreenWidth * nScreenHeight - 1] = '\0';
-		WriteConsoleOutputCharacter(hConsole, screen, nScreenWidth * nScreenHeight, { 0,0 }, &dwBytesWritten);
+		//// Display Frame
+		screen.draw();
 	}
 
 	return 0;
