@@ -28,6 +28,16 @@ clfps::Map::~Map()
 {
 }
 
+int clfps::Map::width() const
+{
+	return m_width;
+}
+
+int clfps::Map::height() const
+{
+	return m_height;
+}
+
 char clfps::Map::getchar(int index)
 {
 	return m_mapdata.c_str()[index];

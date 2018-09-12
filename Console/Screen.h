@@ -18,6 +18,7 @@ namespace clfps {
 		int width() const;
 		int height() const;
 		void set(int, wchar_t);
+		wchar_t * get() { return m_data; };
 	};
 }
 

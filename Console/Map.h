@@ -14,6 +14,8 @@ namespace clfps {
 		char getchar(int);
 		wchar_t& get(int);
 		bool available(int, int);
+		int width() const;
+		int height() const;
 	};
 }
 
