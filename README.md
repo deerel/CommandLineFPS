@@ -1,6 +1,4 @@
 # CommandLineFPS
-A First Person Shooter at the command line? Yup...
+This code originates from OneLineCoder (https://github.com/OneLoneCoder/CommandLineFPS).
 
-Please see the source file on how to configure your command line before running.
-
-This is designed for MS Windows
+My aim with this fork is to refactor the code to object oriented and add functionalities to it.
