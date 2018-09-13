@@ -92,8 +92,7 @@ int nMapHeight = 16;
 float fPlayerX = 14.7f;			// Player Start Position
 float fPlayerY = 5.09f;
 float fPlayerA = 0.0f;			// Player Start Rotation
-float fFOV = 3.14159f / 4.0f;	// Field of View
-//float fDepth = 16.0f;			// Maximum rendering distance
+float fFOV = 3.14159f / 6.0f;	// Field of View
 float fSpeed = 5.0f;			// Walking Speed
 
 int main()

@@ -24,8 +24,8 @@ void clfps::Engine::update_screen()
 		const float fRayAngle = (m_player->rotation() - fov / 2.0f) + ((float)x / (float)m_screen->width()) * fov;
 
 		// Find distance to wall
-		const float fStepSize = 0.1f;		  // Increment size for ray casting, decrease to increase										
-		float fDistanceToWall = 0.0f; //                                      resolution
+		const float fStepSize = 0.5f;		  // Increment size for ray casting, decrease to increase										
+		float fDistanceToWall = 0.0f;		  //                                           resolution
 
 		bool bHitWall = false;		// Set when ray hits wall block
 		bool bBoundary = false;		// Set when ray hits boundary between two wall blocks
@@ -92,11 +92,17 @@ void clfps::Engine::update_screen()
 
 		// Shader walls based on distance
 		short nShade = ' ';
-		if (fDistanceToWall <= m_render_depth / 4.0f)			nShade = 0x2588;	// Very close	
+		if (fDistanceToWall <= m_render_depth / 7.0f)			nShade = 0x2591;	// Very close
+		else if (fDistanceToWall <= m_render_depth / 6.0f)		nShade = 0x2592;	// Middle
+		else if (fDistanceToWall <= m_render_depth / 5.0f)		nShade = 0x2593;	// Middle
+		else if (fDistanceToWall <= m_render_depth / 4.0f)		nShade = 0x2588;	// Middle
 		else if (fDistanceToWall < m_render_depth / 3.0f)		nShade = 0x2593;
 		else if (fDistanceToWall < m_render_depth / 2.0f)		nShade = 0x2592;
 		else if (fDistanceToWall < m_render_depth)				nShade = 0x2591;
 		else													nShade = ' ';		// Too far away
+
+		// Wall color based on distance
+		//WORD color = m_screen->get_wall_color(fDistanceToWall, m_render_depth);
 
 		if (bBoundary)		nShade = ' '; // Black it out
 
@@ -104,9 +110,9 @@ void clfps::Engine::update_screen()
 		{
 			// Each Row
 			if (y <= nCeiling)
-				m_screen->set(y*m_screen->width() + x, ' ');
+				m_screen->set(y*m_screen->width() + x, ' ', m_screen->get_boundary_color());
 			else if (y > nCeiling && y <= nFloor)
-				m_screen->set(y*m_screen->width() + x, nShade);
+				m_screen->set(y*m_screen->width() + x, nShade, m_screen->get_wall_color(fDistanceToWall, m_render_depth));
 			else // Floor
 			{
 				// Shade floor based on distance
@@ -116,7 +122,7 @@ void clfps::Engine::update_screen()
 				else if (b < 0.75)	nShade = '.';
 				else if (b < 0.9)	nShade = '-';
 				else				nShade = ' ';
-				m_screen->set(y*m_screen->width() + x, nShade);
+				m_screen->set(y*m_screen->width() + x, nShade, m_screen->get_floor_color());
 			}
 		}
 	}
